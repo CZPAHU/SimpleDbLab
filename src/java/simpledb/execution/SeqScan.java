@@ -8,6 +8,7 @@ import simpledb.common.DbException;
 import simpledb.storage.DbFileIterator;
 import simpledb.storage.Tuple;
 import simpledb.storage.TupleDesc;
+import simpledb.storage.DbFile;
 
 import java.util.*;
 
@@ -19,6 +20,10 @@ import java.util.*;
 public class SeqScan implements OpIterator {
 
     private static final long serialVersionUID = 1L;
+    private TransactionId tid;
+    private int tableId;
+    private String tableAlias;
+    private DbFileIterator iterator;
 
     /**
      * Creates a sequential scan over the specified table as a part of the
@@ -38,6 +43,9 @@ public class SeqScan implements OpIterator {
      */
     public SeqScan(TransactionId tid, int tableid, String tableAlias) {
         // some code goes here
+        this.tid = tid;
+        this.tableId = tableid;
+        this.tableAlias = tableAlias;
     }
 
     /**
@@ -55,7 +63,7 @@ public class SeqScan implements OpIterator {
     public String getAlias()
     {
         // some code goes here
-        return null;
+        return this.tableAlias;
     }
 
     /**
@@ -72,6 +80,8 @@ public class SeqScan implements OpIterator {
      */
     public void reset(int tableid, String tableAlias) {
         // some code goes here
+        this.tableId = tableid;
+        this.tableAlias = tableAlias;
     }
 
     public SeqScan(TransactionId tid, int tableId) {
@@ -80,6 +90,9 @@ public class SeqScan implements OpIterator {
 
     public void open() throws DbException, TransactionAbortedException {
         // some code goes here
+        DbFile table = Database.getCatalog().getDatabaseFile(tableId);
+        iterator = table.iterator(tid);
+        iterator.open();
     }
 
     /**
@@ -94,26 +107,54 @@ public class SeqScan implements OpIterator {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        TupleDesc tupleDesc = Database.getCatalog().getTupleDesc(tableId);
+        String prefix = "null";
+        if(tableAlias!=null){
+            prefix = tableAlias;
+        }
+        int length = tupleDesc.numFields();
+        Type[] typeAr = new Type[length];
+        String[] fieldAr = new String[length];
+        for(int i=0;i<length;i++){
+            typeAr[i] = tupleDesc.getFieldType(i);
+            String filedName = "null";
+            if(tupleDesc.getFieldName(i) != null){
+                filedName = tupleDesc.getFieldName(i);
+            }
+            fieldAr[i] = prefix + "." + filedName;
+        }
+        TupleDesc res = new TupleDesc(typeAr,fieldAr);
+        return res;
     }
 
     public boolean hasNext() throws TransactionAbortedException, DbException {
         // some code goes here
-        return false;
+        if(iterator != null){
+            return iterator.hasNext();
+        }
+        throw new TransactionAbortedException();
     }
 
     public Tuple next() throws NoSuchElementException,
             TransactionAbortedException, DbException {
         // some code goes here
-        return null;
+        Tuple tuple = iterator.next();
+        if(tuple != null){
+            return tuple;
+        } else {
+            throw new NoSuchElementException("This is the last element");
+        }
     }
 
     public void close() {
         // some code goes here
+        iterator.close();
     }
 
     public void rewind() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+        close();
+        open();
     }
 }

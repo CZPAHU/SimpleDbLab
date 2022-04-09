@@ -34,7 +34,7 @@ public class BufferPool {
     constructor instead. */
     public static final int DEFAULT_PAGES = 50;
     private int numPages;
-    private final HashMap<PageId,Page> buffferPool;
+    private final HashMap<PageId,Page> bufferPool;
     /**
      * Creates a BufferPool that caches up to numPages pages.
      *
@@ -43,7 +43,7 @@ public class BufferPool {
     public BufferPool(int numPages) {
         // some code goes here
         this.numPages = numPages;
-        this.buffferPool = new HashMap<PageId, Page>();
+        this.bufferPool = new HashMap<PageId, Page>();
     }
     
     public static int getPageSize() {
@@ -78,17 +78,20 @@ public class BufferPool {
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // some code goes here
-        if(!buffferPool.containsKey(pid)){
-            if(numPages > buffferPool.size()){
+        if(!bufferPool.containsKey(pid)){
+            if(numPages > bufferPool.size()){
+                //bufferpool 中没有指定页，到disk中去找到对应的page  并将它保存到bufferpool中
+                //1、在disk中找到page 所在的Dbfile/Table
                 DbFile dbFile = Database.getCatalog().getDatabaseFile(pid.getTableId());
-                Page page = dbFile.readFile(pid);
-                buffferPool.put(pid, page);
+                //2、在Dbfile中找到 pid所对应的page
+                Page page = dbFile.readPage(pid);
+                bufferPool.put(pid,page);
+            }
+            else{
+                throw new DbException("bufferPool is full");
             }
         }
-        else{
-            throw new DbException("bufferpool is full");
-        }
-        return buffferPool(pid);
+        return bufferPool.get(pid);
     }
 
     /**
