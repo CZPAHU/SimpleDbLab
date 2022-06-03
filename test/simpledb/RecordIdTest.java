@@ -49,14 +49,14 @@ public class RecordIdTest extends SimpleDbTestBase {
      * Unit test for RecordId.equals()
      */
     @Test public void equals() {
-    	assertEquals(hrid, hrid2);
+        assertEquals(hrid, hrid2);
     	assertEquals(hrid2, hrid);
         assertNotEquals(hrid, hrid3);
         assertNotEquals(hrid3, hrid);
         assertNotEquals(hrid2, hrid4);
         assertNotEquals(hrid4, hrid2);
     }
-    
+
     /**
      * Unit test for RecordId.hashCode()
      */

@@ -209,7 +209,7 @@ public class TupleDesc implements Serializable {
     }
 
     /**
-     * Compares the specified object with this TupleDesc for equality. Two
+     * Compares the specified object  with this TupleDesc for equality. Two
      * TupleDescs are considered equal if they have the same number of items
      * and if the i-th type in this TupleDesc is equal to the i-th type in o
      * for every i.

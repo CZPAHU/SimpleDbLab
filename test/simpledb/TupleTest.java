@@ -41,7 +41,7 @@ public class TupleTest extends SimpleDbTestBase {
     }
 
     /**
-     * Unit test for Tuple.getRecordId() and Tuple.setRecordId()
+     * Unit test for Tuple.getR ecordId() and Tuple.setRecordId()
      */
     @Test public void modifyRecordId() {
         Tuple tup1 = new Tuple(Utility.getTupleDesc(1));
