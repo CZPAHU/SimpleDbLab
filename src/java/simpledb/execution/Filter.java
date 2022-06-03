@@ -14,6 +14,11 @@ public class Filter extends Operator {
 
     private static final long serialVersionUID = 1L;
 
+    private simpledb.execution.Predicate p;
+    private simpledb.execution.OpIterator child;
+    private Iterator<Tuple> it;
+    private final List<Tuple> childTups = new ArrayList<>();
+
     /**
      * Constructor accepts a predicate to apply and a child operator to read
      * tuples to filter from.
@@ -25,29 +30,44 @@ public class Filter extends Operator {
      */
     public Filter(Predicate p, OpIterator child) {
         // some code goes here
+        this.p = p;
+        this.child = child;
     }
 
     public Predicate getPredicate() {
         // some code goes here
-        return null;
+        return this.p;
     }
 
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return this.child.getTupleDesc();
     }
 
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+        child.open();;
+        while(child.hasNext()){
+            Tuple tuple = child.next();
+            if(this.p.filter(tuple)){
+                childTups.add(tuple);
+            }
+        }
+        it = childTups.iterator();
+        super.open();
     }
 
     public void close() {
         // some code goes here
+        child.close();
+        it = null;
+        super.close();
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
         // some code goes here
+        it = childTups.iterator();
     }
 
     /**
@@ -62,18 +82,22 @@ public class Filter extends Operator {
     protected Tuple fetchNext() throws NoSuchElementException,
             TransactionAbortedException, DbException {
         // some code goes here
+        if(it!=null && it.hasNext()){
+            return it.next();
+        }
         return null;
     }
 
     @Override
     public OpIterator[] getChildren() {
         // some code goes here
-        return null;
+        return new simpledb.execution.OpIterator[]{this.child};
     }
 
     @Override
     public void setChildren(OpIterator[] children) {
         // some code goes here
+        this.child = children[0];
     }
 
 }
